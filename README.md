@@ -22,7 +22,7 @@ This model is then compared to an Azure AutoML run.
    - `--max_iter`: maximum number of iterations for the solver to converge
 6. Each run logs its **Accuracy** on the test set; HyperDrive maximizes this metric over at most 20 runs (4 in parallel), and the best model is saved to `outputs/model.joblib` and registered.
 
-**Best HyperDrive run:** C = **0.9466**, max_iter = **100**, Accuracy = **0.9115** (91.15%), run `HD_a89745b6-6dea-4c20-b044-7deeb51c3e6b_5`. The HyperDrive experiment completed all 20 runs in about 6 minutes; each training run took only about 16–22 seconds. The next best runs reached 0.9109 (C = 0.6621, max_iter = 200) and 0.9103 (C = 3.7755, max_iter = 100).
+**Best HyperDrive run:** C = **0.9466**, max_iter = **100**, Accuracy = **0.9115** (91.15%). The HyperDrive experiment completed all 20 runs in about 6 minutes; each training run took only about 16–22 seconds. The next best runs reached 0.9109 (C = 0.6621, max_iter = 200) and 0.9103 (C = 3.7755, max_iter = 100).
 
 Tuning C and max_iter had only a small effect on accuracy, because every run used the same data split and the same algorithm. The model's performance is limited mainly by the algorithm itself (a linear model), not by its hyperparameters.
 
@@ -50,7 +50,7 @@ AutoML tried **9** pipelines: LightGBM, XGBoost and Extremely Randomized Trees w
 
 Gradient-boosted tree models (LightGBM and XGBoost) clearly performed best, while Extremely Randomized Trees reached only 0.7336. Interestingly, the ensembles did not beat the single best LightGBM model.
 
-The best model was a **LightGBM** classifier with a MaxAbsScaler preprocessing step (run `AutoML_31f8ff4d-b1cc-4c43-95b4-96b8f37d6e97_0`) with an accuracy of **0.9197** (91.97%). LightGBM is a gradient-boosting algorithm that builds many small decision trees one after another, each new tree correcting the errors of the previous ones. AutoML used it mostly with default hyperparameters: `min_data_in_leaf=20` (each leaf of a tree must contain at least 20 samples, which limits overfitting), `n_jobs=1` and CPU training. The model is registered in the workspace as `automl_best_model`.
+The best model was a **LightGBM** classifier with a MaxAbsScaler preprocessing step with an accuracy of **0.9197** (91.97%). LightGBM is a gradient-boosting algorithm that builds many small decision trees one after another, each new tree correcting the errors of the previous ones. AutoML used it mostly with default hyperparameters: `min_data_in_leaf=20` (each leaf of a tree must contain at least 20 samples, which limits overfitting), `n_jobs=1` and CPU training. The model is registered in the workspace as `automl_best_model`.
 
 AutoML's data guardrails flagged **class imbalance**: the smallest class (`y = 1`, customers who subscribed) has only **4,108** of **40,124** training samples (about 10.2%). Imbalanced data can make accuracy look better than the model really is, because a model biased toward the majority "no" class still scores high. The other guardrails passed: no missing feature values and no high-cardinality features were detected.
 
