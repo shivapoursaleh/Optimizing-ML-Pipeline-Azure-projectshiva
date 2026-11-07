@@ -12,6 +12,7 @@ This model is then compared to an Azure AutoML run.
 
 ## Scikit-learn Pipeline
 **Pipeline architecture:**
+
 1. **Data:** `train.py` first tries to load the bank marketing CSV from the provided URL with `TabularDatasetFactory`. This failed on the compute cluster (an unsupported .NET Core dependency on Ubuntu 22.04), and the provided sample-data URL later became inaccessible altogether (HTTP 403). Therefore the same Bank Marketing dataset was downloaded from the UCI Machine Learning Repository (`bank-additional-full.csv`, 41,188 rows, 20 features + target) and saved as `bankmarketing_train.csv` in the project folder; `train.py` falls back to this local copy, which is uploaded to the cluster together with the script.
 2. **Cleaning:** The `clean_data` function drops missing values, one-hot encodes `job`, `contact` and `education`, converts yes/no columns (`default`, `housing`, `loan`), `marital` and `poutcome` to 1/0, maps `month` and `day_of_week` to numbers, and separates the target `y` (yes = 1, no = 0).
 3. **Split:** The data is split into 80% training and 20% test data (`random_state=42`, so every run uses the same split).
@@ -25,7 +26,6 @@ This model is then compared to an Azure AutoML run.
 
 Tuning C and max_iter had only a small effect on accuracy, because every run used the same data split and the same algorithm. The model's performance is limited mainly by the algorithm itself (a linear model), not by its hyperparameters.
 
-[Screenshot: HyperDrive RunDetails widget / Trials page]
 
 **Benefits of the parameter sampler:**
 I used `RandomParameterSampling` with `C ~ uniform(0.01, 10)` and `max_iter ~ choice(50, 100, 200, 300)`. Random sampling supports both continuous and discrete hyperparameters, explores the search space efficiently with far fewer runs than an exhaustive grid search, lets all runs execute in parallel, and supports early termination policies (unlike Bayesian sampling). This makes it a good balance between search quality and the limited time and compute available.
@@ -56,9 +56,6 @@ AutoML's data guardrails flagged **class imbalance**: the smallest class (`y = 1
 
 **Note on the data size:** AutoML trained on 40,124 rows, while HyperDrive used all 41,188 rows. When the CSV was loaded with `TabularDatasetFactory`, the `previous` column (number of earlier contacts) was automatically detected as a True/False column, because most of its values are 0 or 1. Rows with 2 or more previous contacts became empty and were removed by `dropna()` in `clean_data`. This could be fixed by setting the column type explicitly (`set_column_types={"previous": DataType.to_long()}`). The difference (about 2.6% of the rows) should be kept in mind when comparing the two accuracies.
 
-[Screenshot: AutoML models list]
-[Screenshot: Feature importance of the best model, if available]
-
 ## Pipeline comparison
 | | HyperDrive | AutoML |
 |---|---|---|
@@ -80,5 +77,3 @@ AutoML's data guardrails flagged **class imbalance**: the smallest class (`y = 1
 - **Larger and better hyperparameter search:** Try more runs, a log-scale range for `C` (e.g. `loguniform`), Bayesian sampling, or other algorithms in HyperDrive.
 - **Run AutoML longer:** The 30-minute timeout limited the number of models AutoML could try; more time could find a better model.
 
-## Proof of cluster clean up
-The compute cluster was deleted in the notebook with `compute_target.delete()`.
